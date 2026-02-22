@@ -4,7 +4,15 @@ import { articles } from "@/lib/db/schema";
 import { scrapeRSSFeeds, generateSlug } from "@/lib/scraper";
 import { eq } from "drizzle-orm";
 
+export async function GET(request: Request) {
+  return handleScrape(request);
+}
+
 export async function POST(request: Request) {
+  return handleScrape(request);
+}
+
+async function handleScrape(request: Request) {
   // Verify cron secret if set
   const authHeader = request.headers.get("authorization");
   if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
