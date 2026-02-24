@@ -15,6 +15,7 @@ const categoryLabels: Record<string, string> = {
   gadgets: "Gadgets & Hardware",
   software: "Software & Apps",
   gaming: "Gaming",
+  coding: "Coding & Development",
   general: "General Tech",
 };
 
@@ -24,6 +25,7 @@ export async function generateStaticParams() {
     { category: "gadgets" },
     { category: "software" },
     { category: "gaming" },
+    { category: "coding" },
     { category: "general" },
   ];
 }
@@ -31,7 +33,7 @@ export async function generateStaticParams() {
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category } = await params;
   
-  const validCategories = ["ai", "gadgets", "software", "gaming", "general"];
+  const validCategories = ["ai", "gadgets", "software", "gaming", "coding", "general"];
   if (!validCategories.includes(category)) {
     notFound();
   }

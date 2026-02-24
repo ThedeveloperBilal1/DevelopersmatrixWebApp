@@ -37,6 +37,28 @@ export const deals = pgTable('deals', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+export const aiTools = pgTable('ai_tools', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 200 }).notNull(),
+  slug: varchar('slug', { length: 200 }).notNull().unique(),
+  description: text('description').notNull(),
+  longDescription: text('long_description'),
+  imageUrl: text('image_url'),
+  websiteUrl: text('website_url').notNull(),
+  category: varchar('category', { length: 100 }).notNull(), // 'coding', 'image-generation', 'writing', 'audio', 'video', 'productivity', 'other'
+  pricing: varchar('pricing', { length: 50 }), // 'free', 'freemium', 'paid'
+  startingPrice: varchar('starting_price', { length: 50 }),
+  features: jsonb('features').default([]),
+  pros: jsonb('pros').default([]),
+  cons: jsonb('cons').default([]),
+  rating: integer('rating'), // 1-5
+  isFeatured: boolean('is_featured').default(false),
+  isActive: boolean('is_active').default(true),
+  views: integer('views').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 export const sources = pgTable('sources', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),

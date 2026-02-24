@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { articles } from "@/lib/db/schema";
+import { articles, deals } from "@/lib/db/schema";
 import { scrapeRSSFeeds, generateSlug } from "@/lib/scraper";
+import { scrapeDeals, generateDealSlug } from "@/lib/scraper/deals";
 import { eq } from "drizzle-orm";
 
 export async function GET(request: Request) {
@@ -19,23 +20,25 @@ async function handleScrape(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const results = {
+    articles: { inserted: 0, skipped: 0, total: 0 },
+    deals: { inserted: 0, skipped: 0, total: 0 },
+  };
+
   try {
-    console.log("Starting scrape job...");
+    // Scrape articles
+    console.log("Starting articles scrape...");
     const scrapedArticles = await scrapeRSSFeeds();
     
-    let inserted = 0;
-    let skipped = 0;
-
     for (const article of scrapedArticles) {
       const slug = generateSlug(article.title);
       
-      // Check if article already exists
       const existing = await db.query.articles.findFirst({
         where: eq(articles.slug, slug),
       });
 
       if (existing) {
-        skipped++;
+        results.articles.skipped++;
         continue;
       }
 
@@ -52,16 +55,49 @@ async function handleScrape(request: Request) {
         isManual: false,
       });
 
-      inserted++;
+      results.articles.inserted++;
     }
+    results.articles.total = scrapedArticles.length;
 
-    console.log(`Scrape complete: ${inserted} inserted, ${skipped} skipped`);
+    // Scrape deals
+    console.log("Starting deals scrape...");
+    const scrapedDeals = await scrapeDeals();
+    
+    for (const deal of scrapedDeals) {
+      const slug = generateDealSlug(deal.title);
+      
+      const existing = await db.query.deals.findFirst({
+        where: eq(deals.slug, slug),
+      });
+
+      if (existing) {
+        results.deals.skipped++;
+        continue;
+      }
+
+      await db.insert(deals).values({
+        title: deal.title,
+        slug,
+        description: deal.description,
+        imageUrl: deal.imageUrl,
+        originalPrice: deal.originalPrice,
+        dealPrice: deal.dealPrice,
+        discountPercent: deal.discountPercent,
+        productUrl: deal.productUrl,
+        retailer: deal.retailer,
+        category: deal.category,
+        isActive: true,
+      });
+
+      results.deals.inserted++;
+    }
+    results.deals.total = scrapedDeals.length;
+
+    console.log("Scrape complete:", results);
 
     return NextResponse.json({
       success: true,
-      inserted,
-      skipped,
-      total: scrapedArticles.length,
+      ...results,
     });
   } catch (error) {
     console.error("Scrape failed:", error);

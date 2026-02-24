@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Cpu, Menu, X } from "lucide-react";
+import { Cpu, Menu, X, Sparkles, Zap, ShoppingBag, Gamepad2, Code, Smartphone, Laptop } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/category/ai", label: "AI" },
-  { href: "/category/gadgets", label: "Gadgets" },
-  { href: "/category/software", label: "Software" },
-  { href: "/deals", label: "Deals" },
+  { href: "/category/ai", label: "AI", icon: Sparkles },
+  { href: "/ai-tools", label: "AI Tools", icon: Zap },
+  { href: "/category/gadgets", label: "Gadgets", icon: Smartphone },
+  { href: "/category/software", label: "Software", icon: Laptop },
+  { href: "/category/gaming", label: "Gaming", icon: Gamepad2 },
+  { href: "/category/coding", label: "Coding", icon: Code },
+  { href: "/deals", label: "Deals", icon: ShoppingBag },
 ];
 
 export function Navbar() {
@@ -26,7 +29,7 @@ export function Navbar() {
             <span>TechPulse</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -43,7 +46,7 @@ export function Navbar() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="lg:hidden"
               onClick={() => setIsOpen(!isOpen)}
             >
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -52,7 +55,7 @@ export function Navbar() {
         </div>
 
         {isOpen && (
-          <div className="md:hidden border-t py-4">
+          <div className="lg:hidden border-t py-4">
             <nav className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <Link
