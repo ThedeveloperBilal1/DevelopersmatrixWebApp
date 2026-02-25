@@ -13,14 +13,15 @@ import {
   ExternalLink,
   TrendingUp
 } from "lucide-react";
+import type { InferSelectModel } from "drizzle-orm";
 
 export const revalidate = 0;
 
 async function getStats() {
   const [articleCount, dealCount, toolCount] = await Promise.all([
-    db.query.articles.findMany({ limit: 1000 }).then(a => a.length),
-    db.query.deals.findMany({ limit: 1000 }).then(d => d.length),
-    db.query.aiTools.findMany({ limit: 1000 }).then(t => t.length),
+    db.query.articles.findMany({ limit: 1000 }).then((a: InferSelectModel<typeof articles>[]) => a.length),
+    db.query.deals.findMany({ limit: 1000 }).then((d: InferSelectModel<typeof deals>[]) => d.length),
+    db.query.aiTools.findMany({ limit: 1000 }).then((t: InferSelectModel<typeof aiTools>[]) => t.length),
   ]);
   
   return { articleCount, dealCount, toolCount };
@@ -127,7 +128,7 @@ async function RecentArticles() {
   const recentArticles = await db.query.articles.findMany({
     orderBy: desc(articles.createdAt),
     limit: 5,
-  });
+  }) as InferSelectModel<typeof articles>[];
 
   return (
     <Card>
@@ -136,7 +137,7 @@ async function RecentArticles() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {recentArticles.map((article) => (
+          {recentArticles.map((article: InferSelectModel<typeof articles>) => (
             <div key={article.id} className="flex items-center justify-between py-2 border-b last:border-0">
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">{article.title}</p>
