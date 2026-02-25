@@ -7,13 +7,19 @@ import { Navbar } from "@/components/navbar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TechPulse - Latest Tech News, AI Updates & Deals",
-  description: "Your daily source for technology news, AI breakthroughs, gadget reviews, and the best tech deals.",
-  keywords: ["tech news", "AI news", "technology", "gadgets", "tech deals"],
+  title: "Developers Matrix - AI Tools, Developer News & Passive Income",
+  description: "The ultimate platform for developers. Browse AI tools, read the latest tech news, access utility tools, and earn passive income through reviews and recommendations.",
+  keywords: ["AI tools", "developer tools", "tech news", "passive income", "developer resources", "software reviews"],
   openGraph: {
-    title: "TechPulse - Latest Tech News & Deals",
-    description: "Your daily source for technology news and deals",
+    title: "Developers Matrix",
+    description: "AI tools directory, developer news, utility tools, and passive income opportunities",
     type: "website",
+    url: "https://developersmatrix.com",
+  },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    userScalable: true,
   },
 };
 
