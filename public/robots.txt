@@ -1,0 +1,27 @@
+# Developers Matrix Robots.txt
+# Allow search engines to crawl most content
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api
+Disallow: /.next
+Disallow: /private
+Allow: /admin/login
+
+# GoogleBot gets full access
+User-agent: Googlebot
+Allow: /
+
+# BingBot gets full access
+User-agent: Bingbot
+Allow: /
+
+# Sitemap
+Sitemap: https://developersmatrix.com/sitemap.xml
+
+# Crawl delay
+Crawl-delay: 0
+
+# Request rate
+Request-rate: 30/1m

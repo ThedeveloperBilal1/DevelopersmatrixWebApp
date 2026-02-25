@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
-import { articles, deals, aiTools } from "@/lib/db/schema";
+import { articles, deals, aiTools, blogPosts, utilityTools } from "@/lib/db/schema";
 import { desc } from "drizzle-orm";
+import type { InferSelectModel } from "drizzle-orm";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,19 +12,23 @@ import {
   RefreshCw, 
   Plus,
   ExternalLink,
-  TrendingUp
+  TrendingUp,
+  BookOpen,
+  Code2
 } from "lucide-react";
 
 export const revalidate = 0;
 
 async function getStats() {
-  const [articleCount, dealCount, toolCount] = await Promise.all([
-    db.query.articles.findMany({ limit: 1000 }).then(a => a.length),
-    db.query.deals.findMany({ limit: 1000 }).then(d => d.length),
-    db.query.aiTools.findMany({ limit: 1000 }).then(t => t.length),
+  const [articleCount, dealCount, toolCount, blogPostCount, utilityToolCount] = await Promise.all([
+    db.query.articles.findMany({ limit: 1000 }).then((a: typeof articles.$inferSelect[]) => a.length),
+    db.query.deals.findMany({ limit: 1000 }).then((d: typeof deals.$inferSelect[]) => d.length),
+    db.query.aiTools.findMany({ limit: 1000 }).then((t: typeof aiTools.$inferSelect[]) => t.length),
+    db.query.blogPosts.findMany({ limit: 1000 }).then((b: typeof blogPosts.$inferSelect[]) => b.length),
+    db.query.utilityTools.findMany({ limit: 1000 }).then((u: typeof utilityTools.$inferSelect[]) => u.length),
   ]);
   
-  return { articleCount, dealCount, toolCount };
+  return { articleCount, dealCount, toolCount, blogPostCount, utilityToolCount };
 }
 
 export default async function AdminPage() {
@@ -42,7 +47,7 @@ export default async function AdminPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Articles</CardTitle>
@@ -72,29 +77,49 @@ export default async function AdminPage() {
             <div className="text-2xl font-bold">{stats.toolCount}</div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Blog Posts</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.blogPostCount}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Tools</CardTitle>
+            <Code2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.utilityToolCount}</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>AI Tools</CardTitle>
+            <CardTitle>Blog Posts</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Manage AI tools directory. Add new tools, edit descriptions, set categories.
+              Create and manage blog articles with SEO optimization.
             </p>
             <div className="flex gap-2">
-              <Link href="/admin/ai-tools">
-                <Button variant="outline" className="gap-2">
+              <Link href="/admin/blog">
+                <Button variant="outline" className="gap-2 text-xs">
                   <Plus className="h-4 w-4" />
-                  Add AI Tool
+                  New Post
                 </Button>
               </Link>
-              <Link href="/ai-tools" target="_blank">
-                <Button variant="ghost" className="gap-2">
+              <Link href="/blog" target="_blank">
+                <Button variant="ghost" className="gap-2 text-xs">
                   <ExternalLink className="h-4 w-4" />
-                  View Page
+                  View
                 </Button>
               </Link>
             </div>
@@ -103,16 +128,51 @@ export default async function AdminPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Analytics</CardTitle>
+            <CardTitle>Utility Tools</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              View site traffic, popular articles, and user engagement metrics.
+              Add calculators, generators, and developer utilities.
             </p>
-            <Button variant="outline" className="gap-2" disabled>
-              <TrendingUp className="h-4 w-4" />
-              Coming Soon
-            </Button>
+            <div className="flex gap-2">
+              <Link href="/admin/tools">
+                <Button variant="outline" className="gap-2 text-xs">
+                  <Plus className="h-4 w-4" />
+                  New Tool
+                </Button>
+              </Link>
+              <Link href="/tools" target="_blank">
+                <Button variant="ghost" className="gap-2 text-xs">
+                  <ExternalLink className="h-4 w-4" />
+                  View
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>AI Tools</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Manage AI tools directory and product database.
+            </p>
+            <div className="flex gap-2">
+              <Link href="/admin/ai-tools">
+                <Button variant="outline" className="gap-2 text-xs">
+                  <Plus className="h-4 w-4" />
+                  New Tool
+                </Button>
+              </Link>
+              <Link href="/ai-tools" target="_blank">
+                <Button variant="ghost" className="gap-2 text-xs">
+                  <ExternalLink className="h-4 w-4" />
+                  View
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -124,7 +184,7 @@ export default async function AdminPage() {
 }
 
 async function RecentArticles() {
-  const recentArticles = await db.query.articles.findMany({
+  const recentArticles: InferSelectModel<typeof articles>[] = await db.query.articles.findMany({
     orderBy: desc(articles.createdAt),
     limit: 5,
   });
