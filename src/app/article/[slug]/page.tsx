@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ExternalLink, Clock, Eye, Share2, Bookmark } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
-import * as cheerio from "cheerio";
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -24,72 +23,34 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
     return { title: "Article Not Found" };
   }
 
+  const cleanExcerpt = article.excerpt?.replace(/<[^\u003e]*>/g, " ").substring(0, 160) || "";
+
   return {
     title: `${article.title} | Developers Matrix`,
-    description: article.excerpt?.replace(/<[^>]*>/g, " ").substring(0, 160) || undefined,
+    description: cleanExcerpt,
     openGraph: {
       title: article.title,
-      description: article.excerpt?.replace(/<[^>]*>/g, " ").substring(0, 160) || undefined,
+      description: cleanExcerpt,
       images: article.imageUrl ? [article.imageUrl] : undefined,
+      type: "article",
+      publishedTime: article.publishedAt.toISOString(),
     },
   };
 }
 
-// Clean HTML content for better display
-function cleanArticleContent(html: string): string {
+// Extract plain text from HTML for display
+function extractTextFromHtml(html: string): string {
   if (!html) return "";
-  
-  const $ = cheerio.load(html);
-  
-  // Remove unwanted elements
-  $('script, style, iframe, nav, header, footer, aside, .advertisement, .ads, .social-share, .comments, .related-posts').remove();
-  
-  // Clean up images - ensure they have proper classes
-  $('img').each((_, elem) => {
-    const $img = $(elem);
-    $img.addClass('rounded-lg my-6 max-w-full h-auto');
-    $img.removeAttr('style');
-    $img.removeAttr('width');
-    $img.removeAttr('height');
-  });
-  
-  // Clean up links
-  $('a').each((_, elem) => {
-    const $a = $(elem);
-    $a.addClass('text-primary hover:underline');
-    $a.attr('target', '_blank');
-    $a.attr('rel', 'noopener noreferrer');
-  });
-  
-  // Clean up headings
-  $('h1, h2, h3, h4, h5, h6').each((_, elem) => {
-    const $h = $(elem);
-    $h.addClass('font-bold mt-8 mb-4 text-foreground');
-  });
-  
-  // Clean up paragraphs
-  $('p').each((_, elem) => {
-    const $p = $(elem);
-    $p.addClass('mb-4 leading-relaxed text-foreground/90');
-  });
-  
-  // Clean up lists
-  $('ul, ol').each((_, elem) => {
-    const $list = $(elem);
-    $list.addClass('mb-4 ml-6 space-y-2');
-  });
-  $('li').each((_, elem) => {
-    const $li = $(elem);
-    $li.addClass('text-foreground/90');
-  });
-  
-  // Clean up blockquotes
-  $('blockquote').each((_, elem) => {
-    const $bq = $(elem);
-    $bq.addClass('border-l-4 border-primary/30 pl-4 italic my-6 text-muted-foreground');
-  });
-  
-  return $.html();
+  // Remove script and style tags
+  let text = html.replace(/<script[^\u003e]*>[<\s\S]*?<\/script>/gi, " ");
+  text = text.replace(/<style[^\u003e]*>[<\s\S]*?<\/style>/gi, " ");
+  // Replace common block elements with newlines
+  text = text.replace(/<\/(p|div|h[1-6]|li|blockquote)>/gi, "\n");
+  // Remove all remaining HTML tags
+  text = text.replace(/<[^\u003e]*>/g, " ");
+  // Clean up whitespace
+  text = text.replace(/\s+/g, " ").trim();
+  return text;
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
@@ -103,11 +64,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound();
   }
 
-  const cleanContent = article.content ? cleanArticleContent(article.content) : "";
-  const cleanExcerpt = article.excerpt ? article.excerpt.replace(/<[^>]*>/g, " ").trim() : "";
+  const articleText = extractTextFromHtml(article.content || article.excerpt || "");
+  const paragraphs = articleText.split(/\n+/).filter(p => p.trim().length > 20);
 
   return (
-    <article className="max-w-4xl mx-auto">
+    <article className="max-w-3xl mx-auto">
       {/* Back button */}
       <Link href="/">
         <Button variant="ghost" className="mb-6 pl-0 hover:bg-transparent hover:text-primary">
@@ -119,7 +80,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       {/* Article Header */}
       <header className="mb-8">
         <div className="flex items-center gap-3 mb-4">
-          <Badge variant="secondary" className="text-xs">{article.category}</Badge>
+          <Badge variant="secondary" className="text-xs capitalize">{article.category}</Badge>
           <span className="text-sm text-muted-foreground">{article.sourceName}</span>
         </div>
 
@@ -159,28 +120,62 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </div>
       )}
 
-      {/* Article Content */}
+      {/* Article Content - Clean Text Format */}
       <div className="prose prose-lg dark:prose-invert max-w-none">
-        {cleanContent ? (
-          <div 
-            className="article-content"
-            dangerouslySetInnerHTML={{ __html: cleanContent }} 
-          />
-        ) : cleanExcerpt ? (
-          <p className="text-xl text-muted-foreground leading-relaxed">{cleanExcerpt}</p>
+        {paragraphs.length > 0 ? (
+          <div className="space-y-6">
+            {paragraphs.slice(0, 3).map((paragraph, index) => (
+              <p key={index} className="text-lg leading-relaxed text-foreground/90">
+                {paragraph}
+              </p>
+            ))}
+            
+            <div className="p-6 bg-muted/50 rounded-xl border border-border/50 my-8">
+              <p className="text-sm text-muted-foreground mb-4">
+                Continue reading the full article at the source:
+              </p>
+              <a
+                href={article.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2"
+              >
+                <Button>
+                  Read Full Article
+                  <ExternalLink className="h-4 w-4 ml-2" />
+                </Button>
+              </a>
+            </div>
+            
+            {paragraphs.slice(3).map((paragraph, index) => (
+              <p key={`rest-${index}`} className="text-lg leading-relaxed text-foreground/90">
+                {paragraph}
+              </p>
+            ))}
+          </div>
         ) : (
           <div className="p-8 text-center bg-muted/50 rounded-xl">
-            <p className="text-muted-foreground">Full content not available. Read the original article below.</p>
+            <p className="text-muted-foreground mb-4">Full content not available in our database.</p>
+            <a
+              href={article.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button>
+                Read at {article.sourceName}
+                <ExternalLink className="h-4 w-4 ml-2" />
+              </Button>
+            </a>
           </div>
         )}
       </div>
 
       {/* Source Link */}
-      <div className="mt-12 p-6 bg-muted/50 rounded-xl border border-border/50">
+      <div className="mt-12 pt-8 border-t">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <p className="font-medium">Originally published on {article.sourceName}</p>
-            <p className="text-sm text-muted-foreground">Read the full story at the source</p>
+            <p className="text-sm text-muted-foreground">{format(new Date(article.publishedAt), "MMMM d, yyyy")}</p>
           </div>
           
           <a
@@ -189,7 +184,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             rel="noopener noreferrer"
           >
             <Button variant="outline" className="gap-2">
-              Read Original
+              Visit Source
               <ExternalLink className="h-4 w-4" />
             </Button>
           </a>

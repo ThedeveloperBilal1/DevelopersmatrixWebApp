@@ -1,0 +1,55 @@
+# LLM-Friendly Content for Developers Matrix
+
+## About
+Developers Matrix is a tech news aggregation platform focused on AI, coding, gadgets, and developer tools. We curate the latest technology news, AI breakthroughs, software updates, and tech deals specifically for developers and tech enthusiasts.
+
+## Content Types
+
+### News Articles
+- AI and Machine Learning breakthroughs
+- Software development news
+- Gadget and hardware reviews
+- Gaming technology updates
+- Programming and coding tutorials
+
+### AI Tools Directory
+- Coding assistants (GitHub Copilot, Cursor, etc.)
+- Image generation tools (Midjourney, DALL-E, Stable Diffusion)
+- Writing assistants (ChatGPT, Claude, Jasper)
+- Audio/Voice tools (ElevenLabs, Murf)
+- Video creation tools (Runway, Pika)
+- Productivity tools (Notion AI, Grammarly)
+
+### Tech Deals
+- Software discounts and promotions
+- Hardware deals (laptops, monitors, accessories)
+- Subscription service offers
+- Developer tool promotions
+
+## Target Audience
+- Software developers
+- AI/ML engineers
+- Tech enthusiasts
+- Startup founders
+- Digital creators
+
+## Content Quality
+- Articles are sourced from reputable tech publications
+- AI tools are manually verified and categorized
+- Deals are regularly updated
+- Content is fact-checked and curated
+
+## Update Frequency
+- News: Hourly updates via automated scraping
+- AI Tools: Weekly updates
+- Deals: Daily updates
+
+## Contact
+For inquiries, partnerships, or content submissions, visit our website.
+
+## Language
+Primary language: English
+
+## Content License
+News content is aggregated from various sources with attribution.
+Original content and tool listings are proprietary to Developers Matrix.

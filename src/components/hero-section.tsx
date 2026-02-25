@@ -1,20 +1,19 @@
-import { ArrowRight, Sparkles, TrendingUp, Zap, Code2, Cpu } from "lucide-react";
+import { ArrowRight, Sparkles, TrendingUp, Zap, Code2, Cpu, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-border/20">
+    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 light:from-slate-100 light:via-white light:to-slate-100 border border-border">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-b from-primary/20 via-primary/5 to-transparent rounded-full blur-3xl animate-pulse" />
         <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-t from-blue-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl" />
         <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary rounded-full animate-ping" />
         <div className="absolute top-3/4 right-1/3 w-1.5 h-1.5 bg-blue-400 rounded-full animate-ping delay-300" />
-        <div className="absolute bottom-1/3 left-1/2 w-1 h-1 bg-purple-400 rounded-full animate-ping delay-700" />
       </div>
 
-      <div className="relative z-10 px-6 py-16 md:px-12 md:py-24 lg:py-32">
+      <div className="relative z-10 px-6 py-16 md:px-12 md:py-24 lg:py-28">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8">
@@ -25,7 +24,7 @@ export function HeroSection() {
 
           {/* Main headline */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-            <span className="bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">
+            <span className="text-white dark:text-white light:text-slate-900">
               Your Daily
             </span>
             <br />
@@ -35,9 +34,9 @@ export function HeroSection() {
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg md:text-xl text-slate-300 dark:text-slate-300 light:text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
             AI breakthroughs, coding insights, gadget reviews, and the best tech deals — 
-            <span className="text-foreground font-medium">handpicked for developers</span>.
+            <span className="text-white dark:text-white light:text-slate-900 font-medium">handpicked for developers</span>.
           </p>
 
           {/* CTA Buttons */}
@@ -49,7 +48,7 @@ export function HeroSection() {
               </Button>
             </Link>
             <Link href="/ai-tools">
-              <Button size="lg" variant="outline" className="gap-2 px-8 h-12 text-base border-border/50">
+              <Button size="lg" variant="outline" className="gap-2 px-8 h-12 text-base border-white/20 dark:border-white/20 light:border-slate-300 text-white dark:text-white light:text-slate-900 hover:bg-white/10 dark:hover:bg-white/10 light:hover:bg-slate-100">
                 <Zap className="h-4 w-4" />
                 Discover AI Tools
               </Button>
@@ -67,9 +66,9 @@ export function HeroSection() {
               <div key={stat.label} className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <stat.icon className="h-4 w-4 text-primary" />
-                  <span className="text-2xl md:text-3xl font-bold text-foreground">{stat.value}</span>
+                  <span className="text-2xl md:text-3xl font-bold text-white dark:text-white light:text-slate-900">{stat.value}</span>
                 </div>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
+                <p className="text-sm text-slate-400 dark:text-slate-400 light:text-slate-600">{stat.label}</p>
               </div>
             ))}
           </div>
