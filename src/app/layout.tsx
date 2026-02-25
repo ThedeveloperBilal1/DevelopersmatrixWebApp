@@ -3,17 +3,25 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TechPulse - Latest Tech News, AI Updates & Deals",
-  description: "Your daily source for technology news, AI breakthroughs, gadget reviews, and the best tech deals.",
-  keywords: ["tech news", "AI news", "technology", "gadgets", "tech deals"],
+  title: "Developers Matrix - Tech News, AI Updates & Developer Tools",
+  description: "Your daily source for technology news, AI breakthroughs, coding insights, gadget reviews, and the best tech deals curated for developers.",
+  keywords: ["tech news", "AI news", "developer tools", "coding", "technology", "gadgets", "tech deals", "programming"],
+  authors: [{ name: "Developers Matrix" }],
   openGraph: {
-    title: "TechPulse - Latest Tech News & Deals",
-    description: "Your daily source for technology news and deals",
+    title: "Developers Matrix - Tech News & AI Updates",
+    description: "Your daily source for technology news and developer tools",
     type: "website",
+    siteName: "Developers Matrix",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Developers Matrix",
+    description: "Tech news and AI updates for developers",
   },
 };
 
@@ -26,9 +34,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider>
-          <div className="min-h-screen bg-background">
+          <div className="min-h-screen flex flex-col bg-background">
             <Navbar />
-            <main className="container mx-auto px-4 py-6">{children}</main>
+            <main className="flex-1 container mx-auto px-4 py-6">{children}</main>
+            <Footer />
           </div>
         </ThemeProvider>
       </body>
