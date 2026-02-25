@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { articles, deals, aiTools, blogPosts, utilityTools } from "@/lib/db/schema";
 import { desc } from "drizzle-orm";
+import type { InferSelectModel } from "drizzle-orm";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -183,7 +184,7 @@ export default async function AdminPage() {
 }
 
 async function RecentArticles() {
-  const recentArticles = await db.query.articles.findMany({
+  const recentArticles: InferSelectModel<typeof articles>[] = await db.query.articles.findMany({
     orderBy: desc(articles.createdAt),
     limit: 5,
   });
