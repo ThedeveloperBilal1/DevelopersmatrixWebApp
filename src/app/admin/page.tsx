@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { articles, deals, aiTools } from "@/lib/db/schema";
+import { articles, deals, aiTools, blogPosts, utilityTools } from "@/lib/db/schema";
 import { desc } from "drizzle-orm";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -20,11 +20,11 @@ export const revalidate = 0;
 
 async function getStats() {
   const [articleCount, dealCount, toolCount, blogPostCount, utilityToolCount] = await Promise.all([
-    db.query.articles.findMany({ limit: 1000 }).then(a => a.length),
-    db.query.deals.findMany({ limit: 1000 }).then(d => d.length),
-    db.query.aiTools.findMany({ limit: 1000 }).then(t => t.length),
-    db.query.blogPosts.findMany({ limit: 1000 }).then(b => b.length),
-    db.query.utilityTools.findMany({ limit: 1000 }).then(u => u.length),
+    db.query.articles.findMany({ limit: 1000 }).then((a: typeof articles.$inferSelect[]) => a.length),
+    db.query.deals.findMany({ limit: 1000 }).then((d: typeof deals.$inferSelect[]) => d.length),
+    db.query.aiTools.findMany({ limit: 1000 }).then((t: typeof aiTools.$inferSelect[]) => t.length),
+    db.query.blogPosts.findMany({ limit: 1000 }).then((b: typeof blogPosts.$inferSelect[]) => b.length),
+    db.query.utilityTools.findMany({ limit: 1000 }).then((u: typeof utilityTools.$inferSelect[]) => u.length),
   ]);
   
   return { articleCount, dealCount, toolCount, blogPostCount, utilityToolCount };
