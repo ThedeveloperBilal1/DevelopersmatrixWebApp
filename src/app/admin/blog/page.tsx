@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Plus, ExternalLink, Trash2 } from 'lucide-react';
+import type { InferSelectModel } from 'drizzle-orm';
 
 export const revalidate = 0;
 
-async function getBlogPosts() {
+async function getBlogPosts(): Promise<InferSelectModel<typeof blogPosts>[]> {
   return await db.query.blogPosts.findMany({
     orderBy: desc(blogPosts.createdAt),
   });
@@ -41,7 +42,7 @@ export default async function BlogAdminPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {posts.map((post) => (
+          {posts.map((post: InferSelectModel<typeof blogPosts>) => (
             <Card key={post.id}>
               <CardContent className="py-4">
                 <div className="flex items-start justify-between gap-4">
