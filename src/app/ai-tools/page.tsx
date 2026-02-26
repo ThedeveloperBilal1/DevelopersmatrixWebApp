@@ -1,12 +1,8 @@
-import { db } from "@/lib/db";
-import { aiTools } from "@/lib/db/schema";
-import { desc, eq } from "drizzle-orm";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Sparkles, Star, Zap, Image, Code, PenTool, Music, Video, Briefcase, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import type { InferSelectModel } from "drizzle-orm";
 
 export const revalidate = 300;
 
@@ -230,17 +226,8 @@ const realAITools = [
 ];
 
 async function getAITools() {
-  const dbTools = await db.query.aiTools.findMany({
-    where: eq(aiTools.isActive, true),
-    orderBy: desc(aiTools.isFeatured),
-  }) as InferSelectModel<typeof aiTools>[];
-  
-  // If no tools in DB, return the real tools
-  if (dbTools.length === 0) {
-    return realAITools;
-  }
-  
-  return dbTools;
+  // Always show real AI tools - this ensures users see content immediately
+  return realAITools;
 }
 
 export default async function AIToolsPage() {

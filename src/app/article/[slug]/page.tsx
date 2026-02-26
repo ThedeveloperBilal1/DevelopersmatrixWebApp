@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ExternalLink, Clock, Eye, Share2, Bookmark } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
+import * as cheerio from "cheerio";
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -38,19 +39,63 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   };
 }
 
-// Extract plain text from HTML for display
-function extractTextFromHtml(html: string): string {
-  if (!html) return "";
-  // Remove script and style tags
-  let text = html.replace(/<script[^\u003e]*>[<\s\S]*?<\/script>/gi, " ");
-  text = text.replace(/<style[^\u003e]*>[<\s\S]*?<\/style>/gi, " ");
-  // Replace common block elements with newlines
-  text = text.replace(/<\/(p|div|h[1-6]|li|blockquote)>/gi, "\n");
-  // Remove all remaining HTML tags
-  text = text.replace(/<[^\u003e]*>/g, " ");
-  // Clean up whitespace
-  text = text.replace(/\s+/g, " ").trim();
-  return text;
+// Format article content with proper structure
+function formatArticleContent(html: string): { type: string; content: string }[] {
+  if (!html) return [];
+  
+  const $ = cheerio.load(html);
+  
+  // Remove unwanted elements
+  $('script, style, iframe, nav, header, footer, aside, .advertisement, .ads, .social-share, .comments, .related-posts').remove();
+  
+  const sections: { type: string; content: string }[] = [];
+  
+  // Process headings
+  $('h1, h2, h3, h4, h5, h6').each((_, elem) => {
+    const text = $(elem).text().trim();
+    if (text && text.length > 3) {
+      sections.push({ type: 'heading', content: text });
+    }
+  });
+  
+  // Process paragraphs
+  $('p').each((_, elem) => {
+    const text = $(elem).text().trim();
+    if (text && text.length > 20) {
+      sections.push({ type: 'paragraph', content: text });
+    }
+  });
+  
+  // Process lists
+  $('ul, ol').each((_, elem) => {
+    const items: string[] = [];
+    $(elem).find('li').each((_, li) => {
+      const text = $(li).text().trim();
+      if (text) items.push(text);
+    });
+    if (items.length > 0) {
+      sections.push({ type: 'list', content: JSON.stringify(items) });
+    }
+  });
+  
+  // Process blockquotes
+  $('blockquote').each((_, elem) => {
+    const text = $(elem).text().trim();
+    if (text && text.length > 10) {
+      sections.push({ type: 'quote', content: text });
+    }
+  });
+  
+  // If no structured content found, fall back to text extraction
+  if (sections.length === 0) {
+    const text = $.text().trim();
+    const paragraphs = text.split(/\n+/).filter(p => p.trim().length > 30);
+    paragraphs.forEach(p => {
+      sections.push({ type: 'paragraph', content: p.trim() });
+    });
+  }
+  
+  return sections;
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
@@ -64,8 +109,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound();
   }
 
-  const articleText = extractTextFromHtml(article.content || article.excerpt || "");
-  const paragraphs = articleText.split(/\n+/).filter(p => p.trim().length > 20);
+  const contentSections = formatArticleContent(article.content || article.excerpt || "");
 
   return (
     <article className="max-w-3xl mx-auto">
@@ -120,38 +164,57 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </div>
       )}
 
-      {/* Article Content - Clean Text Format */}
-      <div className="prose prose-lg dark:prose-invert max-w-none">
-        {paragraphs.length > 0 ? (
+      {/* Article Content - Properly Formatted */}
+      <div className="article-content">
+        {contentSections.length > 0 ? (
           <div className="space-y-6">
-            {paragraphs.slice(0, 3).map((paragraph, index) => (
-              <p key={index} className="text-lg leading-relaxed text-foreground/90">
-                {paragraph}
-              </p>
-            ))}
-            
-            <div className="p-6 bg-muted/50 rounded-xl border border-border/50 my-8">
-              <p className="text-sm text-muted-foreground mb-4">
-                Continue reading the full article at the source:
-              </p>
-              <a
-                href={article.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2"
-              >
-                <Button>
-                  Read Full Article
-                  <ExternalLink className="h-4 w-4 ml-2" />
-                </Button>
-              </a>
-            </div>
-            
-            {paragraphs.slice(3).map((paragraph, index) => (
-              <p key={`rest-${index}`} className="text-lg leading-relaxed text-foreground/90">
-                {paragraph}
-              </p>
-            ))}
+            {contentSections.map((section, index) => {
+              if (section.type === 'heading') {
+                return (
+                  <h2 
+                    key={index} 
+                    className="text-2xl font-bold mt-10 mb-4 text-foreground"
+                  >
+                    {section.content}
+                  </h2>
+                );
+              }
+              
+              if (section.type === 'paragraph') {
+                return (
+                  <p 
+                    key={index}
+                    className="text-lg leading-relaxed text-foreground/90"
+                  >
+                    {section.content}
+                  </p>
+                );
+              }
+              
+              if (section.type === 'list') {
+                const items = JSON.parse(section.content);
+                return (
+                  <ul key={index} className="list-disc list-inside space-y-2 ml-4">
+                    {items.map((item: string, i: number) => (
+                      <li key={i} className="text-foreground/90">{item}</li>
+                    ))}
+                  </ul>
+                );
+              }
+              
+              if (section.type === 'quote') {
+                return (
+                  <blockquote 
+                    key={index}
+                    className="border-l-4 border-primary/30 pl-6 py-2 italic text-muted-foreground my-8"
+                  >
+                    "{section.content}"
+                  </blockquote>
+                );
+              }
+              
+              return null;
+            })}
           </div>
         ) : (
           <div className="p-8 text-center bg-muted/50 rounded-xl">
