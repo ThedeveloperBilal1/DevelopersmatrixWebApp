@@ -1,10 +1,10 @@
-import { ArrowRight, Sparkles, TrendingUp, Zap, Code2, Cpu, ChevronRight } from "lucide-react";
+import { ArrowRight, Sparkles, TrendingUp, Zap, Code2, Cpu } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 light:from-slate-100 light:via-white light:to-slate-100 border border-border">
+    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border border-border">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-b from-primary/20 via-primary/5 to-transparent rounded-full blur-3xl animate-pulse" />
@@ -16,15 +16,15 @@ export function HeroSection() {
       <div className="relative z-10 px-6 py-16 md:px-12 md:py-24 lg:py-28">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 dark:bg-white/10 border border-white/20 backdrop-blur-sm mb-8">
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Curated for Developers</span>
+            <span className="text-sm font-medium text-white">Curated for Developers</span>
             <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
           </div>
 
           {/* Main headline */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-            <span className="text-white dark:text-white light:text-slate-900">
+            <span className="text-white">
               Your Daily
             </span>
             <br />
@@ -34,21 +34,21 @@ export function HeroSection() {
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lg md:text-xl text-slate-300 dark:text-slate-300 light:text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg md:text-xl text-slate-200 max-w-2xl mx-auto mb-10 leading-relaxed">
             AI breakthroughs, coding insights, gadget reviews, and the best tech deals — 
-            <span className="text-white dark:text-white light:text-slate-900 font-medium">handpicked for developers</span>.
+            <span className="text-white font-semibold">handpicked for developers</span>.
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <Link href="/category/ai">
-              <Button size="lg" className="gap-2 px-8 h-12 text-base">
+              <Button size="lg" className="gap-2 px-8 h-12 text-base bg-white text-slate-900 hover:bg-slate-100 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90">
                 Explore AI News
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link href="/ai-tools">
-              <Button size="lg" variant="outline" className="gap-2 px-8 h-12 text-base border-white/20 dark:border-white/20 light:border-slate-300 text-white dark:text-white light:text-slate-900 hover:bg-white/10 dark:hover:bg-white/10 light:hover:bg-slate-100">
+              <Button size="lg" variant="outline" className="gap-2 px-8 h-12 text-base border-white/30 text-white hover:bg-white/10">
                 <Zap className="h-4 w-4" />
                 Discover AI Tools
               </Button>
@@ -66,9 +66,9 @@ export function HeroSection() {
               <div key={stat.label} className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <stat.icon className="h-4 w-4 text-primary" />
-                  <span className="text-2xl md:text-3xl font-bold text-white dark:text-white light:text-slate-900">{stat.value}</span>
+                  <span className="text-2xl md:text-3xl font-bold text-white">{stat.value}</span>
                 </div>
-                <p className="text-sm text-slate-400 dark:text-slate-400 light:text-slate-600">{stat.label}</p>
+                <p className="text-sm text-slate-300">{stat.label}</p>
               </div>
             ))}
           </div>

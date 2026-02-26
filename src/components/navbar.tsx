@@ -26,13 +26,13 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center">
-            <div className="relative h-10 w-auto">
+            <div className="relative h-10 w-auto px-2 py-1 rounded-lg bg-slate-900 dark:bg-slate-800">
               <Image 
                 src="/logo.png" 
                 alt="Developers Matrix" 
-                width={180}
-                height={40}
-                className="h-10 w-auto object-contain"
+                width={160}
+                height={32}
+                className="h-8 w-auto object-contain"
                 priority
               />
             </div>

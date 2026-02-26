@@ -39,13 +39,13 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-4">
-              <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-primary/10">
+              <div className="relative h-10 w-auto px-2 py-1 rounded-lg bg-slate-900 dark:bg-slate-800">
                 <Image 
                   src="/logo.png" 
                   alt="Developers Matrix" 
-                  width={40} 
-                  height={40}
-                  className="object-contain"
+                  width={160}
+                  height={32}
+                  className="h-8 w-auto object-contain"
                 />
               </div>
               <span className="text-xl font-bold">
