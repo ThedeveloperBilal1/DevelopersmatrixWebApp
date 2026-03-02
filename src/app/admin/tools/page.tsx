@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { utilityTools } from '@/lib/db/schema';
 import { desc } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +10,7 @@ import { Edit, Plus, Trash2 } from 'lucide-react';
 
 export const revalidate = 0;
 
-async function getTools() {
+async function getTools(): Promise<InferSelectModel<typeof utilityTools>[]> {
   return await db.query.utilityTools.findMany({
     orderBy: desc(utilityTools.createdAt),
   });
@@ -41,7 +42,7 @@ export default async function ToolsAdminPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {tools.map((tool) => (
+          {tools.map((tool: InferSelectModel<typeof utilityTools>) => (
             <Card key={tool.id}>
               <CardContent className="py-4">
                 <div className="flex items-start justify-between gap-4">
