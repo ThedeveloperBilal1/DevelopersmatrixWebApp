@@ -1,0 +1,22 @@
+# Blog Automation Cron Configuration
+# 
+# Add these lines to your crontab (crontab -e) to enable automated blog generation
+#
+# Format: minute hour day-of-month month day-of-week command
+
+# Generate new blog posts daily at 6:00 AM
+0 6 * * * cd /home/z/my-project && /usr/bin/node scripts/blog-cron.js >> logs/blog-cron.log 2>&1
+
+# Generate blog posts every 12 hours (at 6 AM and 6 PM)
+# 0 6,18 * * * cd /home/z/my-project && /usr/bin/node scripts/blog-cron.js >> logs/blog-cron.log 2>&1
+
+# Generate blog posts twice weekly (Monday and Thursday at 8 AM)
+# 0 8 * * 1,4 cd /home/z/my-project && /usr/bin/node scripts/blog-cron.js >> logs/blog-cron.log 2>&1
+
+# Environment variables needed:
+# BLOG_API_KEY - API key for blog automation endpoint
+# BASE_URL - Base URL of your application (default: http://localhost:3000)
+# POSTS_PER_RUN - Number of posts to generate per run (default: 3)
+
+# Example with environment variables:
+# 0 6 * * * cd /home/z/my-project && BLOG_API_KEY=your-key POSTS_PER_RUN=5 /usr/bin/node scripts/blog-cron.js >> logs/blog-cron.log 2>&1

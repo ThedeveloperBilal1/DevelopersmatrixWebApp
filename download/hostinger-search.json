@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://www.youtube.com/watch?v=zbtuwZkypH8",
+    "name": "Node.js Hosting : The Complete Setup Tutorial (Easy mode)",
+    "snippet": "Deploy your Node.js hosting project with flat pricing and automated GitHub deployments https://hostingeracademy.com/4cuVV2z Get 10% off ...",
+    "host_name": "www.youtube.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.hostinger.com/my/web-apps-hosting",
+    "name": "Deploy your Node.js web app - Hostinger",
+    "snippet": "Deploy straight from IDE. No dashboard needed. Agentic Deployment connects your IDE to Hostinger's managed infrastructure, enabling fast, code-first app ...",
+    "host_name": "www.hostinger.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/@nitjsr.abhay/deploy-node-js-with-nginx-on-vps-hostinger-full-guide-from-scratch-7312cb426218",
+    "name": "Deploy Node.js with Nginx on VPS (Hostinger) Full Guide from Scratch",
+    "snippet": "1. Connect to your server · 2. Update your server · 3. Install Node.js + NPM · 4. Install Nginx · 5. Allow Nginx in the firewall · 6. Install PM2 to ... Missing: shared | Show results with: shared\nWhy use Nginx with Node.js? Hosting architecture: Nginx → Node.js → App. 1. Connect to your server. 2. Update your server. 3. Install Node.js + NPM. 4. Install Nginx. 5. Allow Nginx...",
+    "host_name": "medium.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.hostinger.com/tutorials/what-is-node-js",
+    "name": "Introduction to Node.js for beginners - Hostinger",
+    "snippet": "To deploy a Node.js app easily, use Hostinger's web-app hosting solution. It integrates with GitHub to simplify the deployment process and ...",
+    "host_name": "www.hostinger.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://stackoverflow.com/questions/33114797/how-to-setup-node-js-on-a-hosting-server-such-as-hostinger-justhost-etc",
+    "name": "How to setup node.js on a hosting server such as Hostinger",
+    "snippet": "I have VPS with hostinger and so far I have installed node.js nvm and git. But i need to deploy my application on it from y github repository. can i host nodejs react project on hostinger shared hosting? [closed] how to deploy a node app to hostinger vps - Stack Overflow More results from stackoverflow.com Missing: steps | Show results with: steps",
+    "host_name": "stackoverflow.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.quora.com/How-can-we-install-Node-js-on-a-shared-hosting-server",
+    "name": "How can we install Node.js on a shared hosting server? - Quora",
+    "snippet": "Going this route, here is a list of steps you can follow to deploy your Node.js application to a server using one of those services: Set up and configure a ... How to deploy a Node.js app on a shared hosting and on ... How to host my node.js site in shared hosting More results from www.quora.com",
+    "host_name": "www.quora.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.hostinger.com/support/9553137-how-to-set-up-a-node-js-application-using-hostinger-cloudpanel",
+    "name": "How to set up a Node.js application on a Hostinger VPS with",
+    "snippet": "Step 2 – Access CloudPanel · Step 3 – Create a Node.js application · Step 4 – Start your Node.js application.",
+    "host_name": "www.hostinger.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=LE_b8PiYy-A",
+    "name": "Deploying Nodejs Application to Server [Full Guide] - YouTube",
+    "snippet": "Hostinger Black Friday Deal: Go to www.hostinger.com/ipenywis and use code IPENYWIS to get up to 91% OFF yearly web hosting plans.",
+    "host_name": "www.youtube.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.hostinger.com/my/vps/nodejs-hosting",
+    "name": "Node.js VPS hosting: high-speed solution for your projects - Hostinger",
+    "snippet": "Optimize your Node.js apps on our high-speed network. Streamline your workflow with our AI Assistant. Scale anytime you need.",
+    "host_name": "www.hostinger.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.hostinger.com/support/how-to-deploy-a-nodejs-website-in-hostinger",
+    "name": "How to add a Node.js Web App in Hostinger",
+    "snippet": "Now you’ve learned how to deploy a Node.js app in Hostinger using either GitHub integration or direct file upload. If you have any questions or need further assistance, feel free to reach out to our support team via live chat 24/7 – we’re always here to help!",
+    "host_name": "www.hostinger.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]
