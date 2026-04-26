@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  MessageSquare, 
-  RefreshCw, 
+import { Progress } from '@/components/ui/progress';
+import {
+  MessageSquare,
+  RefreshCw,
   ThumbsUp,
   ThumbsDown,
   ChevronRight,
@@ -20,7 +20,11 @@ import {
   CheckCircle,
   XCircle,
   Lightbulb,
-  Info
+  Info,
+  TrendingUp,
+  Award,
+  Brain,
+  Zap
 } from 'lucide-react';
 import {
   Tooltip,
@@ -31,10 +35,33 @@ import {
 
 interface FeedbackResponse {
   score: number;
+  relevanceScore: number;
+  qualityScore: number;
+  depthScore: number;
+  isRelevant: boolean;
   strengths: string[];
   improvements: string[];
+  coveredConcepts: string[];
+  missedConcepts: string[];
   detailedFeedback: string;
   sampleAnswer: string;
+  followUpSuggestion?: string;
+  session?: {
+    id: string;
+    questionsAnswered: number;
+    averageScore: number;
+    currentDifficulty: string;
+  };
+  suggestedDifficulty?: string;
+}
+
+interface QuestionData {
+  question: string;
+  category: string;
+  difficulty: string;
+  role: string;
+  expectedConcepts: string[];
+  hints: string[];
 }
 
 type Category = 'behavioral' | 'technical' | 'system';
@@ -59,10 +86,12 @@ const roleOptions = [
   'Full Stack Developer',
   'DevOps Engineer',
   'Data Scientist',
+  'Data Analyst',
   'Product Manager',
   'Engineering Manager',
   'Mobile Developer',
-  'QA Engineer'
+  'QA Engineer',
+  'System Architect'
 ];
 
 export default function InterviewSimulatorClient() {
@@ -70,21 +99,28 @@ export default function InterviewSimulatorClient() {
   const [difficulty, setDifficulty] = useState<Difficulty>('mid');
   const [role, setRole] = useState('Software Developer');
   const [currentQuestion, setCurrentQuestion] = useState('');
+  const [questionData, setQuestionData] = useState<QuestionData | null>(null);
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState<FeedbackResponse | null>(null);
-  const [followUpQuestion, setFollowUpQuestion] = useState('');
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
+  const [averageScore, setAverageScore] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isFollowUpMode, setIsFollowUpMode] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [showHints, setShowHints] = useState(false);
+  const [adaptiveDifficulty, setAdaptiveDifficulty] = useState<Difficulty | null>(null);
+
+  // Performance tracking
+  const [scoreHistory, setScoreHistory] = useState<number[]>([]);
 
   const generateQuestion = useCallback(async () => {
     setIsLoading(true);
     setError('');
     setFeedback(null);
-    setFollowUpQuestion('');
     setIsFollowUpMode(false);
-    
+    setShowHints(false);
+
     try {
       const response = await fetch('/api/interview', {
         method: 'POST',
@@ -92,8 +128,9 @@ export default function InterviewSimulatorClient() {
         body: JSON.stringify({
           mode: 'question',
           category,
-          difficulty,
-          role
+          difficulty: adaptiveDifficulty || difficulty,
+          role,
+          sessionId
         })
       });
 
@@ -102,22 +139,41 @@ export default function InterviewSimulatorClient() {
       }
 
       const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to generate question');
+      }
+
       setCurrentQuestion(data.content);
+      setQuestionData({
+        question: data.content,
+        category,
+        difficulty: data.questionData?.difficulty || difficulty,
+        role,
+        expectedConcepts: data.questionData?.expectedConcepts || [],
+        hints: data.hints || []
+      });
       setAnswer('');
+
+      if (data.session) {
+        setSessionId(data.session.id);
+        setQuestionsAnswered(data.session.questionsAnswered || 0);
+        setAverageScore(data.session.averageScore || 0);
+      }
     } catch (err) {
       setError('Failed to generate question. Please try again.');
       console.error(err);
     } finally {
       setIsLoading(false);
     }
-  }, [category, difficulty, role]);
+  }, [category, difficulty, role, sessionId, adaptiveDifficulty]);
 
   const submitAnswer = async () => {
     if (!answer.trim() || !currentQuestion) return;
-    
+
     setIsLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch('/api/interview', {
         method: 'POST',
@@ -127,8 +183,10 @@ export default function InterviewSimulatorClient() {
           question: currentQuestion,
           answer: answer.trim(),
           category,
-          difficulty,
-          role
+          difficulty: adaptiveDifficulty || difficulty,
+          role,
+          sessionId,
+          questionTopics: questionData?.expectedConcepts
         })
       });
 
@@ -137,8 +195,27 @@ export default function InterviewSimulatorClient() {
       }
 
       const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to get feedback');
+      }
+
       setFeedback(data);
       setQuestionsAnswered(prev => prev + 1);
+
+      if (data.session) {
+        setAverageScore(data.session.averageScore || 0);
+      }
+
+      // Update score history
+      if (data.score) {
+        setScoreHistory(prev => [...prev, data.score]);
+      }
+
+      // Check for adaptive difficulty change
+      if (data.suggestedDifficulty && data.suggestedDifficulty !== difficulty) {
+        setAdaptiveDifficulty(data.suggestedDifficulty as Difficulty);
+      }
     } catch (err) {
       setError('Failed to get feedback. Please try again.');
       console.error(err);
@@ -149,10 +226,10 @@ export default function InterviewSimulatorClient() {
 
   const generateFollowUp = async () => {
     if (!answer.trim() || !currentQuestion) return;
-    
+
     setIsLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch('/api/interview', {
         method: 'POST',
@@ -162,8 +239,9 @@ export default function InterviewSimulatorClient() {
           question: currentQuestion,
           answer: answer.trim(),
           category,
-          difficulty,
-          role
+          difficulty: adaptiveDifficulty || difficulty,
+          role,
+          sessionId
         })
       });
 
@@ -172,8 +250,13 @@ export default function InterviewSimulatorClient() {
       }
 
       const data = await response.json();
-      setFollowUpQuestion(data.content);
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to generate follow-up');
+      }
+
       setCurrentQuestion(data.content);
+      setQuestionData(data.questionData || null);
       setAnswer('');
       setFeedback(null);
       setIsFollowUpMode(true);
@@ -189,10 +272,15 @@ export default function InterviewSimulatorClient() {
     setCurrentQuestion('');
     setAnswer('');
     setFeedback(null);
-    setFollowUpQuestion('');
+    setQuestionData(null);
     setIsFollowUpMode(false);
     setQuestionsAnswered(0);
     setError('');
+    setSessionId(null);
+    setScoreHistory([]);
+    setAverageScore(0);
+    setAdaptiveDifficulty(null);
+    setShowHints(false);
   };
 
   const getScoreColor = (score: number) => {
@@ -201,17 +289,39 @@ export default function InterviewSimulatorClient() {
     return 'text-red-500';
   };
 
+  const getScoreBgColor = (score: number) => {
+    if (score >= 8) return 'bg-green-500';
+    if (score >= 6) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
+  const getPerformanceLabel = (score: number) => {
+    if (score >= 9) return 'Excellent';
+    if (score >= 7) return 'Good';
+    if (score >= 5) return 'Fair';
+    return 'Needs Work';
+  };
+
   return (
     <TooltipProvider>
-      <Card>
-        <CardHeader className="border-b">
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="border-b bg-gradient-to-r from-orange-500/10 to-amber-500/10">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Brain className="w-5 h-5 text-orange-500" />
               AI Interview Simulator
             </CardTitle>
             <div className="flex items-center gap-4">
-              <Badge variant="secondary">Questions: {questionsAnswered}</Badge>
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <MessageSquare className="w-3 h-3" />
+                {questionsAnswered} Questions
+              </Badge>
+              {averageScore > 0 && (
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <Award className="w-3 h-3" />
+                  Avg: {averageScore.toFixed(1)}/10
+                </Badge>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -245,19 +355,23 @@ export default function InterviewSimulatorClient() {
             {/* Difficulty Selection */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label className="text-sm font-medium">Experience Level</Label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-[200px] text-xs">Adjusts question complexity based on experience</p>
-                  </TooltipContent>
-                </Tooltip>
+                <Label className="text-sm font-medium">
+                  {adaptiveDifficulty && adaptiveDifficulty !== difficulty ? (
+                    <span className="flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-amber-500" />
+                      Adaptive Level
+                    </span>
+                  ) : (
+                    'Experience Level'
+                  )}
+                </Label>
               </div>
               <select
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value as Difficulty)}
+                value={adaptiveDifficulty || difficulty}
+                onChange={(e) => {
+                  setDifficulty(e.target.value as Difficulty);
+                  setAdaptiveDifficulty(null);
+                }}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {Object.entries(difficultyLabels).map(([key, label]) => (
@@ -273,7 +387,7 @@ export default function InterviewSimulatorClient() {
                 {[
                   { id: 'behavioral', label: 'Behavioral' },
                   { id: 'technical', label: 'Technical' },
-                  { id: 'system', label: 'System Design' }
+                  { id: 'system', label: 'System' }
                 ].map(cat => (
                   <Button
                     key={cat.id}
@@ -303,17 +417,42 @@ export default function InterviewSimulatorClient() {
             </div>
           )}
 
+          {/* Score Progress (if history exists) */}
+          {scoreHistory.length > 0 && (
+            <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground">Performance Trend</span>
+                <TrendingUp className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <div className="flex gap-1">
+                {scoreHistory.slice(-5).map((score, i) => (
+                  <div
+                    key={i}
+                    className={`h-8 flex-1 rounded ${getScoreBgColor(score)} flex items-end justify-center`}
+                    style={{ opacity: 0.5 + (score / 20) }}
+                  >
+                    <span className="text-xs font-bold text-white mb-1">{score}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {!currentQuestion ? (
             <div className="text-center py-8 sm:py-16">
-              <MessageSquare className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-muted-foreground/30" />
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">Ready to Practice?</h3>
-              <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 px-4">
+              <div className="relative inline-block mb-4">
+                <Brain className="w-16 h-16 sm:w-20 sm:h-20 mx-auto text-orange-500/20" />
+                <Sparkles className="w-6 h-6 absolute top-0 right-0 text-amber-500" />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold mb-2">Ready to Practice?</h3>
+              <p className="text-sm sm:text-base text-muted-foreground mb-6 px-4 max-w-md mx-auto">
                 {categoryDescriptions[category]}
               </p>
-              <Button 
-                onClick={generateQuestion} 
+              <Button
+                onClick={generateQuestion}
                 disabled={isLoading}
-                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 min-h-[44px]"
+                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 min-h-[44px] px-8"
+                size="lg"
               >
                 {isLoading ? (
                   <>
@@ -331,13 +470,41 @@ export default function InterviewSimulatorClient() {
           ) : (
             <div className="space-y-4 sm:space-y-6">
               {/* Question */}
-              <div className="p-4 sm:p-6 bg-muted/50 rounded-xl">
-                <div className="flex items-center gap-2 mb-2 sm:mb-3">
+              <div className="p-4 sm:p-6 bg-gradient-to-r from-orange-500/5 to-amber-500/5 border border-orange-500/20 rounded-xl">
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
                   <Badge className="bg-orange-500">{category.charAt(0).toUpperCase() + category.slice(1)}</Badge>
                   {isFollowUpMode && <Badge variant="outline" className="text-purple-500 border-purple-500">Follow-up</Badge>}
-                  <Badge variant="outline">{difficultyLabels[difficulty]}</Badge>
+                  <Badge variant="outline">{difficultyLabels[adaptiveDifficulty || difficulty]}</Badge>
+                  <Badge variant="secondary">{role}</Badge>
                 </div>
-                <p className="text-base sm:text-lg font-medium">{currentQuestion}</p>
+                <p className="text-base sm:text-lg font-medium leading-relaxed">{currentQuestion}</p>
+
+                {/* Hints Toggle */}
+                {questionData?.hints && questionData.hints.length > 0 && (
+                  <div className="mt-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowHints(!showHints)}
+                      className="text-muted-foreground"
+                    >
+                      <Lightbulb className="w-4 h-4 mr-1" />
+                      {showHints ? 'Hide Hints' : 'Show Hints'}
+                    </Button>
+                    {showHints && (
+                      <div className="mt-2 p-3 bg-muted/50 rounded-lg">
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          {questionData.hints.map((hint, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-orange-500">•</span>
+                              {hint}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Answer Input */}
@@ -347,35 +514,73 @@ export default function InterviewSimulatorClient() {
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
                   placeholder={
-                    category === 'behavioral' 
+                    category === 'behavioral'
                       ? "Use the STAR method: Describe the Situation, Task, Action you took, and the Result..."
                       : category === 'technical'
-                      ? "Explain your approach step by step, considering edge cases and trade-offs..."
-                      : "Start with requirements, then high-level design, dive into components..."
+                        ? "Explain your approach step by step, considering edge cases and trade-offs..."
+                        : "Start with requirements, then high-level design, dive into components..."
                   }
                   rows={6}
                   disabled={!!feedback || isLoading}
                   className="resize-none"
                 />
-                <p className="text-xs text-muted-foreground">
-                  {answer.length} characters • {answer.split(/\s+/).filter(Boolean).length} words
-                </p>
+                <div className="flex justify-between items-center text-xs text-muted-foreground">
+                  <span>{answer.length} characters • {answer.split(/\s+/).filter(Boolean).length} words</span>
+                  {answer.length > 0 && answer.length < 50 && (
+                    <span className="text-amber-500">Consider writing more for a complete answer</span>
+                  )}
+                </div>
               </div>
 
               {/* Feedback */}
               {feedback && (
-                <div className="p-4 bg-violet-500/10 dark:bg-violet-500/10 border border-violet-500/20 rounded-xl">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-medium">AI Feedback</span>
-                    <div className={`text-xl font-bold ${getScoreColor(feedback.score)}`}>
-                      Score: {feedback.score}/10
+                <div className="space-y-4">
+                  {/* Score Display */}
+                  <div className={`p-4 rounded-xl border ${
+                    feedback.score >= 7
+                      ? 'bg-green-500/10 border-green-500/20'
+                      : feedback.score >= 5
+                        ? 'bg-yellow-500/10 border-yellow-500/20'
+                        : 'bg-red-500/10 border-red-500/20'
+                  }`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        {feedback.isRelevant ? (
+                          <CheckCircle className="w-5 h-5 text-green-500" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-amber-500" />
+                        )}
+                        <span className="font-medium">{getPerformanceLabel(feedback.score)}</span>
+                      </div>
+                      <div className={`text-2xl font-bold ${getScoreColor(feedback.score)}`}>
+                        {feedback.score}/10
+                      </div>
                     </div>
+
+                    {/* Score Breakdown */}
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      <div className="text-center p-2 bg-background/50 rounded">
+                        <div className="text-xs text-muted-foreground">Relevance</div>
+                        <div className="font-medium">{feedback.relevanceScore.toFixed(1)}</div>
+                      </div>
+                      <div className="text-center p-2 bg-background/50 rounded">
+                        <div className="text-xs text-muted-foreground">Quality</div>
+                        <div className="font-medium">{feedback.qualityScore.toFixed(1)}</div>
+                      </div>
+                      <div className="text-center p-2 bg-background/50 rounded">
+                        <div className="text-xs text-muted-foreground">Depth</div>
+                        <div className="font-medium">{feedback.depthScore.toFixed(1)}</div>
+                      </div>
+                    </div>
+
+                    {/* Detailed Feedback */}
+                    <p className="text-sm">{feedback.detailedFeedback}</p>
                   </div>
-                  
+
                   {/* Strengths */}
-                  {feedback.strengths && feedback.strengths.length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-1 flex items-center gap-1">
+                  {feedback.strengths.length > 0 && (
+                    <div className="p-4 bg-green-500/5 border border-green-500/20 rounded-lg">
+                      <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-2 flex items-center gap-1">
                         <CheckCircle className="w-4 h-4" /> Strengths
                       </p>
                       <ul className="text-sm text-muted-foreground space-y-1">
@@ -388,55 +593,67 @@ export default function InterviewSimulatorClient() {
                       </ul>
                     </div>
                   )}
-                  
+
                   {/* Improvements */}
-                  {feedback.improvements && feedback.improvements.length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1">
+                  {feedback.improvements.length > 0 && (
+                    <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-lg">
+                      <p className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-1">
                         <Target className="w-4 h-4" /> Areas to Improve
                       </p>
                       <ul className="text-sm text-muted-foreground space-y-1">
-                        {feedback.improvements.map((i, idx) => (
-                          <li key={idx} className="flex items-start gap-2">
+                        {feedback.improvements.map((imp, i) => (
+                          <li key={i} className="flex items-start gap-2">
                             <span className="text-amber-500 mt-1">•</span>
-                            {i}
+                            {imp}
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
 
-                  {/* Detailed Feedback */}
-                  {feedback.detailedFeedback && (
-                    <p className="text-sm text-muted-foreground mb-3">{feedback.detailedFeedback}</p>
+                  {/* Covered Concepts */}
+                  {feedback.coveredConcepts.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {feedback.coveredConcepts.map((concept, i) => (
+                        <Badge key={i} variant="outline" className="text-green-500 border-green-500/50">
+                          {concept}
+                        </Badge>
+                      ))}
+                    </div>
                   )}
 
                   {/* Sample Answer Hint */}
                   {feedback.sampleAnswer && (
-                    <div className="p-3 bg-muted/50 rounded-lg mb-3">
-                      <p className="text-sm font-medium mb-1 flex items-center gap-1">
+                    <div className="p-4 bg-muted/30 rounded-lg">
+                      <p className="text-sm font-medium mb-2 flex items-center gap-1">
                         <Lightbulb className="w-4 h-4 text-amber-500" /> Sample Approach
                       </p>
-                      <p className="text-xs text-muted-foreground">{feedback.sampleAnswer}</p>
+                      <p className="text-xs text-muted-foreground whitespace-pre-line">{feedback.sampleAnswer}</p>
                     </div>
                   )}
 
-                  {/* Actions */}
-                  <div className="flex gap-2 mt-4">
-                    <Button variant="outline" size="sm">
-                      <ThumbsUp className="w-3 h-3 mr-1" /> Helpful
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <ThumbsDown className="w-3 h-3 mr-1" /> Not Helpful
-                    </Button>
-                  </div>
+                  {/* Follow-up Suggestion */}
+                  {feedback.followUpSuggestion && feedback.score >= 5 && (
+                    <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg text-sm text-purple-600 dark:text-purple-400">
+                      <Zap className="w-4 h-4 inline mr-1" />
+                      {feedback.followUpSuggestion}
+                    </div>
+                  )}
+
+                  {/* Adaptive Difficulty Notification */}
+                  {feedback.suggestedDifficulty && (
+                    <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg text-sm text-blue-600 dark:text-blue-400">
+                      <TrendingUp className="w-4 h-4 inline mr-1" />
+                      Difficulty adjusted to: {difficultyLabels[feedback.suggestedDifficulty as Difficulty]}
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Actions */}
               <div className="flex flex-col sm:flex-row gap-3">
                 {!feedback ? (
-                  <Button 
+                  <Button
                     onClick={submitAnswer}
                     disabled={!answer.trim() || isLoading}
                     className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 min-h-[44px]"
@@ -450,11 +667,11 @@ export default function InterviewSimulatorClient() {
                   </Button>
                 ) : (
                   <>
-                    <Button 
+                    <Button
                       onClick={generateFollowUp}
                       variant="outline"
                       className="flex-1 min-h-[44px]"
-                      disabled={isLoading}
+                      disabled={isLoading || feedback.score < 4}
                     >
                       {isLoading ? (
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -463,7 +680,7 @@ export default function InterviewSimulatorClient() {
                       )}
                       Ask Follow-up
                     </Button>
-                    <Button 
+                    <Button
                       onClick={generateQuestion}
                       className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 min-h-[44px]"
                       disabled={isLoading}
@@ -481,13 +698,13 @@ export default function InterviewSimulatorClient() {
 
               {/* Tips */}
               <div className="p-4 bg-muted/30 rounded-lg">
-                <p className="text-sm font-medium mb-2">Tip</p>
+                <p className="text-sm font-medium mb-2">💡 Tip</p>
                 <p className="text-xs text-muted-foreground">
-                  {category === 'behavioral' 
+                  {category === 'behavioral'
                     ? "Use the STAR method: Situation (set the context), Task (what you needed to do), Action (what you actually did), Result (the outcome with quantifiable metrics if possible)."
                     : category === 'technical'
-                    ? "Explain your thought process clearly. Start with what you know, mention edge cases, discuss time/space complexity, and don't be afraid to say 'I'm not sure but I would...'"
-                    : "Start by clarifying requirements and constraints. Then outline a high-level design, discuss component interactions, address scalability, and mention trade-offs for each decision."}
+                      ? "Explain your thought process clearly. Start with what you know, mention edge cases, discuss time/space complexity, and don't be afraid to say 'I'm not sure but I would...'"
+                      : "Start by clarifying requirements and constraints. Then outline a high-level design, discuss component interactions, address scalability, and mention trade-offs for each decision."}
                 </p>
               </div>
             </div>
